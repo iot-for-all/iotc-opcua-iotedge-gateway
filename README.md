@@ -11,12 +11,15 @@ OPC UA devices connected to IoT Central via IoT Edge Gateway using the following
 In this pattern IoT Edge Gateway is only device known in the cloud. All capabilities are part of that one device.
 
 1. Setup and run [OPC UA Server Simulator](/opcua-server-sim/readme.me#to-setup-simulator)
-2. Create and publish OPC UA client custom IoT Edge module by following steps documented in [edge-gateway-modules](/edge-gateway-modules/opcua-client/readme.me)
-3. [Create an IoT Central application](https://docs.microsoft.com/en-us/azure/iot-central/core/quick-deploy-iot-central#create-an-application)
-4. [Create an IoT Edge device template to your application](https://docs.microsoft.com/en-us/learn/modules/create-your-first-iot-central-app/2-create-device-template#:~:text=Next-,Create%20a%20device%20template,-Completed) using [deployment.amd64.json](/edge-gateway-modules/opcua-client/config/deployment.amd64.json) created in step #2 above
-5. [Publish the device template]()
-6. [Register an IoT Edge Gateway device](https://docs.microsoft.com/en-us/azure/iot-central/core/quick-deploy-iot-central#register-a-device)
-7. [Deploy an IoT Edge enabled Linux VM]()
+2. Build and publish [OPC UA client custom IoT Edge module](/edge-gateway-modules/opcua-client/readme.me)
+3. Create an [IoT Central application](https://docs.microsoft.com/en-us/azure/iot-central/core/quick-deploy-iot-central#create-an-application)
+4. Create an [IoT Edge device template](https://docs.microsoft.com/en-us/learn/modules/create-your-first-iot-central-app/2-create-device-template#:~:text=Next-,Create%20a%20device%20template,-Completed) to your application using [deployment.amd64.json](/edge-gateway-modules/opcua-client/config/deployment.amd64.json) created in step #2 above
+5. [Publish the device template]() created in step #4
+6. Register an [IoT Edge Gateway device](https://docs.microsoft.com/en-us/azure/iot-central/core/quick-deploy-iot-central#register-a-device) to your application
+7. Deploy an [IoT Edge enabled Linux VM]()
+8. Configure the IoT Edge VM to connect to IoT Central
+9. Go to your IoT Central application and verify that Iot Edge Gateway device status changed to _"Provisioned"_
+10. Click on device and select _"Raw data"_ tab and verify the telemetry is flowing
 
 &nbsp;
 ## Identity Translation pattern

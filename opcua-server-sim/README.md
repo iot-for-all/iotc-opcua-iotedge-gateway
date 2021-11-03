@@ -1,4 +1,4 @@
-# opcua-server-sim
+# OPC UA Server Simulator
 
 ## Prerequisite
 Need Python 3.7 or higher.  Install from [here](https://www.python.org/downloads/)
