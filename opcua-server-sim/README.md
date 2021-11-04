@@ -20,25 +20,56 @@ python opcua_server.py
 Ctrl-C the python processes in there respective shells.  This is no glamour code!
 
 ## To setup Simulator
-1. Create a Win10 [VM](https://portal.azure.com/#blade/HubsExtension/BrowseResource/resourceType/Microsoft.Compute%2FVirtualMachines) in Azure portal
-2. Open the following inbounds ports:
-	- 4840 for OPC UA client
-	- 3389 for RDP (Remote Desktop)
-3. Open the following outbound port
-	- 4840 for OPC UA server
-4. Use Remote Desktop to terminal to the VM
-5. Install Python 3.7 or higher from [here](https://www.python.org/downloads/)
-6. Copy the [opcua_server.py](opcua_server.py), [opcua_server.json](opcua_server.json), and [requirements.txt](requirements.txt) files over to the VM
-7. Open the prompt command and change the directory to opcua_server.py location
-8. Install the needed libraries
+1. Create Windows Virtual Machine using the following CLI commands:
 	``` shell
-	pip install -r .\requirements.txt
-	```
-9. Run the OPC-UA server with default config from a shell
+		#!/bin/bash
+		az login
+
+		# Setup account subscription
+		az account set --subscription <YOUR_SUBSCRIPTION_NAME>
+
+		# Make sure resource group exists
+		az group create \
+			--name <YOUR_RESOURCE_GROUP_NAME> \
+			--location <AZURE_REGION>
+
+		# Create a new VM running Windows
+		az vm create \
+			--resource-group <YOUR_RESOURCE_GROUP_NAME> \
+			--name <YOUR_VM_NAME> \
+			--image Win2019Datacenter \
+    		--public-ip-sku Standard \
+			--admin-username <YOUR_USER_NAME> \
+			--admin-password <YOUR_PASSWORD>
+
+		# Open port 4840 for OPC UA client to connect
+		az vm open-port \
+			--port 4840 \
+			--resource-group <YOUR_RESOURCE_GROUP_NAME> \
+			--name <YOUR_VM_NAME>
+
+		# Open port 3389 for RDP connection (Remote Desktop)
+		az vm open-port \
+			--port 3389 \
+			--resource-group <YOUR_RESOURCE_GROUP_NAME> \
+			--name <YOUR_VM_NAME>
+    ```
+2. Connect to the Windows Virtual Machine using publicIpAddress returned in the output from your VM
 	``` shell
-	python opcua_server.py
+		mstsc /v:<VM_PUBLIC_IP_ADDRESS>
 	```
-10. Observe the opcua_server keeps logging the generated data
+3. Install Python 3.7 or higher in Win10 VM from [here](https://www.python.org/downloads/)
+4. Copy the [opcua_server.py](opcua_server.py), [opcua_server.json](opcua_server.json), and [requirements.txt](requirements.txt) files over to the Windows VM
+5. Open the prompt command and change the directory to opcua_server.py location
+6. Install the needed libraries
+	``` shell
+		pip install -r .\requirements.txt
+	```
+7. Run the OPC-UA server with default config from a shell
+	``` shell
+		python opcua_server.py
+	```
+8. Observe the opcua_server keeps logging the generated data
 
 &nbsp;
 ## Credit

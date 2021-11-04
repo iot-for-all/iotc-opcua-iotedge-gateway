@@ -1,5 +1,5 @@
-## Protocol Translation pattern
-In this pattern IoT Edge Gateway is only device known in the cloud. All capabilities are part of that one device.
+# IoT Central Application Setup
+
 
 1. Setup and run [OPC UA Server Simulator](/opcua-server-sim/readme.me#to-setup-simulator)
 2. Build and publish [OPC UA client custom IoT Edge module](/edge-gateway-modules/opcua-client/readme.me)
