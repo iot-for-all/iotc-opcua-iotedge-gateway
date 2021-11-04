@@ -1,13 +1,41 @@
 # IoT Central Application Setup
 
+1. Create an [IoT Central application](https://apps.azureiotcentral.com/build)
+2. Click on **"Create app"**
 
-1. Setup and run [OPC UA Server Simulator](/opcua-server-sim/readme.me#to-setup-simulator)
-2. Build and publish [OPC UA client custom IoT Edge module](/edge-gateway-modules/opcua-client/readme.me)
-3. Setup [IoT Central application](iotcentral.md)
-4. Create an [IoT Edge device template](https://github.com/rangv/azureiotcentraledgelinux/tree/master/edgemodule#create-device-template) to your application using [deployment.amd64.json](/edge-gateway-modules/opcua-client/config/deployment.amd64.json) created in step #2 above
-5. [Publish the device template]() created in step #4
-6. Register an [IoT Edge Gateway device](https://github.com/rangv/azureiotcentraledgelinux/tree/master/edgemodule#add-iot-edge-device) to your application
-7. Deploy an [IoT Edge enabled Linux VM](https://github.com/rangv/azureiotcentraledgelinux/tree/master/marketplacedeployment). Please select **Ubuntu Server 18.04 LTS** based VM
-8. Provision [VM as an IoT Edge device](https://github.com/rangv/azureiotcentraledgelinux/tree/master/edgemodule#provision-vm-as-an-iot-edge-device)
-9. Go to your IoT Central application and verify that Iot Edge Gateway device status changed to _"Provisioned"_
-10. Click on device and select _"Raw data"_ tab and verify the telemetry is flowing
+    ![IoT Central App](/assets/05_central_app_create.png)
+3. Fill up the required information and click **"Create"**
+
+    ![IoT Central App](/assets/06_central_app_create.png)
+3. Click on **"Device template"** then **"+ New"**start creating an IoT Edge device template 
+
+    ![IoT Central App](/assets/07_device_template.png)
+4. On the **"Select type"** page click on **"Azure IoT Edge"** tile
+
+    ![IoT Central App](/assets/08_device_template_type.png)
+5. Click **"Next: Customize"** and provide a name in **"Device template name"** textbox, ckeck _"This is a gateway device"_ checkbox, and click on **"Browse"** button to upload the [deployment.amd64.json](/edge-gateway-modules/opcua-client/config/deployment.amd64.json) you created previously then click **"Next: Review"**
+
+    ![IoT Central App](/assets/09_device_template_upload.png)
+6. Click on **"Create"** button on **"Review"** page
+7. On the next page click on **"Relationships"**
+
+    ![IoT Central App](/assets/10_device_template_rel.png)
+8. Set the relationship by clicking on **"+ Add relationship"**, put "any" word in all 3 textboxes (Display name, Name, and Target), then click on **"Save"**, and finally **"Publish"**
+
+    ![IoT Central App](/assets/11_device_template_publish.png)
+9. Click on **"Devices"**, select the template you just created, and click on **"Create a device"** button to register an IoT Edge Gateway device to your application
+
+    ![IoT Central App](/assets/12_device_template_select.png)
+10. On the **"Create a new device"** page fill up the display name, Device ID, make sure your device template is seleted in **"Device template"** dropdown, finally click on **"Create"**
+
+    ![IoT Central App](/assets/13_device_reg.png)
+11. Go to device explorer page and confirm the device status shows as _"Registered"_
+
+    ![IoT Central App](/assets/14_device_created.png)
+
+5. Click on device you just registered above and open _"Connect"_ tab
+
+    ![IoT Central App](/assets/04_device_connect_tab.png)
+6. Note the **"ID scope"**, **"Device ID"**, and **"Primary key"** values. You need them later to configure IoT Edge runtime 1.2
+
+    ![IoT Central App](/assets/01_device_connect.png)
