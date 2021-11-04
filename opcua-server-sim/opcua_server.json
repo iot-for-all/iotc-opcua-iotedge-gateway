@@ -1,0 +1,72 @@
+{
+    "server": {
+        "endpoint": "opc.tcp://0.0.0.0:4840/cnc_widget/server/",
+        "uri": "http://examples.iot-for-all.github.io"
+    },
+    "structures": [
+        {
+            "name": "accelerometer_struct",
+            "fields": [
+                {
+                    "name": "x",
+                    "type": "Float"
+                },
+                {
+                    "name": "y",
+                    "type": "Float"
+                },
+                {
+                    "name": "z",
+                    "type": "Float"
+                }         
+            ]
+        }
+    ],
+    "objects": [
+        {
+            "name": "Widget_Maker_1000",
+            "variables": [
+                {
+                    "name": "widget_count",
+                    "type": "Int32",
+                    "array": false,
+                    "value": 0,
+                    "writable": true,
+                    "function": "inc"
+                },
+                {
+                    "name": "spindle_rpm",
+                    "type": "Float",
+                    "array": false,
+                    "value": 1000.34,
+                    "writable": true,
+                    "function": "rnd_walk"
+                },
+                {
+                    "name": "coolant_temp",
+                    "type": "Float",
+                    "array": false,
+                    "value": 27.5,
+                    "writable": true,
+                    "function": "rnd_walk"
+                },      
+                {
+                    "name": "error_count",
+                    "type": "Int32",
+                    "array": false,
+                    "value": 0,
+                    "writable": true,
+                    "function": "rnd_inc"
+                },               
+                {
+                    "name": "vibration_3d",
+                    "type": "accelerometer_struct",
+                    "array": false,
+                    "value": {"x": 0.0, "y": 0.0, "z": 0.0},
+                    "writable": true,
+                    "function": "rnd_walk"
+                }
+            ]
+        }
+    ]
+}

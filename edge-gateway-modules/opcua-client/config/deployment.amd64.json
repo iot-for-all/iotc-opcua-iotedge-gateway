@@ -1,0 +1,72 @@
+{
+  "modulesContent": {
+    "$edgeAgent": {
+      "properties.desired": {
+        "schemaVersion": "1.1",
+        "runtime": {
+          "type": "docker",
+          "settings": {
+            "minDockerVersion": "v1.25",
+            "loggingOptions": "",
+            "registryCredentials": {
+              "<YOUR_ACR_REGISTRY_NAME>": {
+                "username": "$CONTAINER_REGISTRY_USERNAME_<YOUR_ACR_REGISTRY_NAME>",
+                "password": "$CONTAINER_REGISTRY_PASSWORD_<YOUR_ACR_REGISTRY_NAME>",
+                "address": "<YOUR_ACR_REGISTRY_NAME>.azurecr.io"
+              }
+            }
+          }
+        },
+        "systemModules": {
+          "edgeAgent": {
+            "type": "docker",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.2",
+              "createOptions": "{}"
+            }
+          },
+          "edgeHub": {
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.2",
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+            }
+          }
+        },
+        "modules": {
+          "opcua_client": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "<YOUR_ACR_REGISTRY_NAME>.azurecr.io/opcua_client:0.0.1-amd64",
+              "createOptions": "{}"
+            },
+            "env": {
+              "opcuaServerUrl": {
+                "value": "opc.tcp://<YOUR_OPCUA_SERVER_VM_IPADDRESS>:4840/cnc_widget/server/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.2",
+        "routes": {
+          "opcua_clientToIoTHub": "FROM /* INTO $upstream"
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 7200
+        }
+      }
+    },
+    "opcua_client": {
+      "properties.desired": {}
+    }
+  }
+}
