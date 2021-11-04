@@ -6,7 +6,7 @@
 - Install Docker in your development machine from [docker.com](https://www.docker.com/products/docker-desktop)
 
 ## Build and publish OPC UA client module
-1. Copy the [solution provided](/opcua-client) and open it in VSCode
+1. Copy the [provided solution](/opcua-client) to your development machine and open it in VSCode
 2. in [.env file](/modules/opcua_client/.env) replace all instance of <YOUR_ACR_REGISTRY_NAME> with your ACR _"Registry name"_ and replace <YOUR_ACR_REGISTRY_PASSWORD> with your ACR _"password"_
 3. In [module.json](/modules/opcua_client/module.json) replace <YOUR_ACR_REGISTRY_NAME> with your ACR _"Registry name"_
 4. In [deployment.template.json](deployment.template.json#L13-L16) replace all instance of <YOUR_ACR_REGISTRY_NAME> with your ACR _"Registry name"_ and replace <YOUR_OPCUA_SERVER_VM_IPADDRESS> with the ipaddress of your [opcua_server VM](/opcua-server-sim/readme.me/#L27) 

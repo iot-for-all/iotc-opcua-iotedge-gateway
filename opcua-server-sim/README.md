@@ -20,7 +20,7 @@ python opcua_server.py
 Ctrl-C the python processes in there respective shells.  This is no glamour code!
 
 ## To setup Simulator
-1. Create a Win10 VM in Azure portal
+1. Create a Win10 [VM](https://portal.azure.com/#blade/HubsExtension/BrowseResource/resourceType/Microsoft.Compute%2FVirtualMachines) in Azure portal
 2. Open the following inbounds ports:
 	- 4840 for OPC UA client
 	- 3389 for RDP (Remote Desktop)
