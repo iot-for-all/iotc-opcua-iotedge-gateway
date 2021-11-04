@@ -58,7 +58,7 @@ Ctrl-C the python processes in there respective shells.  This is no glamour code
 	``` shell
 		mstsc /v:<VM_PUBLIC_IP_ADDRESS>
 	```
-3. Install Python 3.7 or higher in Win10 VM from [here](https://www.python.org/downloads/)
+3. Install Python 3.7 or higher in Windows VM from [here](https://www.python.org/downloads/)
 4. Copy the [opcua_server.py](opcua_server.py), [opcua_server.json](opcua_server.json), and [requirements.txt](requirements.txt) files over to the Windows VM
 5. Open the prompt command and change the directory to opcua_server.py location
 6. Install the needed libraries
