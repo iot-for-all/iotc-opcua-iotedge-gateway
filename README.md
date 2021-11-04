@@ -10,8 +10,8 @@ OPC UA devices connected to IoT Central via IoT Edge Gateway using the following
 ## Protocol Translation pattern
 In this pattern IoT Edge Gateway is only device known in the cloud. All capabilities are part of that one device.
 
-1. Setup and run [OPC UA Server Simulator](/opcua-server-sim/readme.me#to-setup-simulator)
-2. Build and publish [OPC UA client custom IoT Edge module](/edge-gateway-modules/opcua-client/readme.me)
+1. Setup and run [OPC UA Server Simulator](/iotc-opcua-iotedge-gateway/opcua-server-sim/readme.me#to-setup-simulator)
+2. Build and publish [OPC UA client custom IoT Edge module](/iotc-opcua-iotedge-gateway/edge-gateway-modules/opcua-client/readme.me)
 3. Setup [IoT Central application](iotcentral.md)
 4. Deploy an [IoT Edge enabled Linux VM](edgevm.md)
 5. Confim that IoT Edge device status shows _"Provisioned"_ in your IoT Central application
