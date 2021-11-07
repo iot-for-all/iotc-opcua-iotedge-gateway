@@ -68,7 +68,7 @@
             },
             "env": {
               "opcuaServerUrl": {
-                "value": "opc.tcp://<YOUR_OPCUA_SERVER_VM_IPADDRESS>:4840/cnc_widget/server/"
+                "value": "${OPCUA_SRVER_URL}"
               }
             }
           }

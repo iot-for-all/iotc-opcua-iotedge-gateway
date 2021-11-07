@@ -20,6 +20,7 @@ PAUSE_IN_SECOND = 15
 
 variable_nodes = []
 incoming_queue = []
+deviceId = ""
 
 class SubsriptionHandler(object):
     def datachange_notification(self, node, val, data):
@@ -75,7 +76,6 @@ async def send_to_upstream(data, module_client):
         elif str(type(data["value"])).startswith("<class"):
             value = json_dump_struct(data["value"])
 
-        deviceId = os.getenv(data["name"].replace('_', ''))
         nodeid = f'"{data["nodeid"]}"'
         name = f'"{data["name"]}"'
         timestamp = f'"{data["source_time_stamp"]}"'
@@ -86,9 +86,7 @@ async def send_to_upstream(data, module_client):
         msg = Message(payload)
         msg.content_type = "application/json"
         msg.content_encoding = "utf-8"
-        if not deviceId:
-            print("Using Protocol Translation pattern, only the IoTEdge Gateway has an identity with IoT Hub")
-        else:
+        if deviceId:
             msg.custom_properties = dict([("deviceId", deviceId)])
 
         try:
@@ -110,6 +108,13 @@ async def main():
         if not sys.version >= "3.5.3":
             raise Exception( "The sample requires python 3.5.3+. Current version of Python: %s" % sys.version )
         print ( "IotEdge module Client for Processing OPC UA messages" )
+
+        global deviceId
+        deviceId = os.getenv("opcuaDeviceId")
+        if not deviceId:
+            print("Using Protocol Translation pattern, only the IoTEdge Gateway has an identity with IoT Hub")
+        else:
+            print('Using Identity Translation pattern, device "%s" and IoTEdge Gateway have identity with IoT Hub' % deviceId)
 
         # The client object is used to interact with your Azure IoT hub.
         module_client = IoTHubModuleClient.create_from_edge_environment()
