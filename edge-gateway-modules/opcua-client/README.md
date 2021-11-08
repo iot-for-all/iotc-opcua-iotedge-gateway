@@ -16,7 +16,3 @@
 5. Right click on [deployment.template.json](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-client/deployment.template.json) in your vscode solution and select _"Build and Push IoT Edge Solution"_. If successful, you should see the _"opcua_client"_ package in your ACR Repositories
 6. Right click on [deployment.template.json](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-client/deployment.template.json) in your vscode solution and select _"Generate IoT Edge Deployment Manifest"_
 7. Use the [deployment.amd64.json](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-client/config/deployment.amd64.json) file to create IoT Edge Gateway device template in your IoT Central application
-
-
-
-
