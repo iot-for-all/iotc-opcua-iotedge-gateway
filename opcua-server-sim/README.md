@@ -54,7 +54,7 @@
 	- Add the following paths to the _"Path"_ section of _"User variables for . . ."_
 		- %USERPROFILE%\AppData\Local\Programs\Python\Python310
 		- %USERPROFILE%\AppData\Local\Programs\Python\Python310\Scripts
-	- Adjust the above paths if paython installed in different path
+	- Adjust the above paths if python installed in different path
 7. Copy the [opcua_server.py](opcua_server.py), [opcua_server.json](opcua_server.json), and [requirements.txt](requirements.txt) files over to the Windows VM
 8. Open the prompt command and change the directory to opcua_server.py location
 9. Install the needed libraries
