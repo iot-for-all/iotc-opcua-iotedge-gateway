@@ -10,10 +10,10 @@
             "minDockerVersion": "v1.25",
             "loggingOptions": "",
             "registryCredentials": {
-              "<YOUR_ACR_REGISTRY_NAME>": {
-                "username": "$CONTAINER_REGISTRY_USERNAME_<YOUR_ACR_REGISTRY_NAME>",
-                "password": "$CONTAINER_REGISTRY_PASSWORD_<YOUR_ACR_REGISTRY_NAME>",
-                "address": "<YOUR_ACR_REGISTRY_NAME>.azurecr.io"
+              "$CONTAINER_REGISTRY_USERNAME": {
+                "username": "$CONTAINER_REGISTRY_USERNAME",
+                "password": "$CONTAINER_REGISTRY_PASSWORD",
+                "address": "$CONTAINER_REGISTRY_USERNAME.azurecr.io"
               }
             }
           }
