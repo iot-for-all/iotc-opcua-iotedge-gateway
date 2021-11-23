@@ -1,0 +1,3 @@
+asyncio
+opcua
+azure-iot-device
