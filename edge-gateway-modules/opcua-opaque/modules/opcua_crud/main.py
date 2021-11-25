@@ -105,6 +105,8 @@ async def add_method_handler(method_request):
         
         if item.get("filter") != None:
             value["filter"] = item["filter"]
+            
+        value["opaque"] = item.get("opaque")
         
         # config = url_dict.get(url)
         config = server_dict.get(serverId)
@@ -265,11 +267,13 @@ async def filter_method_handler(method_request):
                 if pubInterval == None:
                     pubInterval = PUBLISH_INTERVAL_MS
                     
+            opaque = item.get("opaque")
+                    
             if ops == "reset":
                 print("Reseting nodeid filter on server %s" % config.serverId)
                 await config.reset_subscription_filter()
                 
-                entry = { "url": config.url, "publishInterval": pubInterval, "ops": None, "filter": None }
+                entry = { "url": config.url, "publishInterval": pubInterval, "opaque": opaque, "ops": None, "filter": None }
                 reported_properties["opcua"].update({ config.serverId: entry })
                 print("Removing reported opcua filter section {}".format(entry))
                 data.update({config.serverId: { "status": 200, "data": "Reseted filter on server '{}'".format(serverId)}})
@@ -283,7 +287,7 @@ async def filter_method_handler(method_request):
                 print("Filter nodes: {}".format(nodes))
                 await config.apply_subscription_filter(ops, nodes)
             
-                entry = { "url": config.url, "publishInterval": pubInterval, "ops": ops, "filter": nodes }
+                entry = { "url": config.url, "publishInterval": pubInterval, "opaque": opaque, "ops": ops, "filter": nodes }
                 reported_properties["opcua"].update({ config.serverId: entry })
                 print("Setting reported opcua to {}".format(entry))
                 data.update({config.serverId: { "status": 200, "data": "Applied filter on server '{}'".format(serverId)}})
@@ -328,11 +332,12 @@ async def pubInterval_method_handler(method_request):
                 pubInterval = config.publishInterval
                 if pubInterval == None:
                     pubInterval = PUBLISH_INTERVAL_MS
-
+                    
+            opaque = item.get("opaque")
             print("changing publishing interval for server %s to %d ms" % (serverId, pubInterval))
             await config.publish_interval_update(pubInterval)
             
-            entry = { "publishInterval": pubInterval }
+            entry = { "publishInterval": pubInterval, "opaque": opaque }
             reported_properties["opcua"].update({ config.serverId: entry })
             print("Setting reported opcua to {}".format(entry))
             data.update({config.serverId: { "status": 200, "data": "Changed publish interval on server '{}'".format(serverId)}})
@@ -350,7 +355,11 @@ async def pubInterval_method_handler(method_request):
     print("executed pubInterval")
 
 class OpcuaConfig(object):
-    def __init__(self, serverId, url, opcua_client, variable_nodes, subsciption, handles, deviceId, publishInterval) -> None:
+    def __init__(self, serverId, url, opcua_client, variable_nodes, subsciption, handles, publishInterval, opaque) -> None:
+        if opaque == None:
+            opaque = True
+        
+        self.opaque = opaque
         self.serverId = serverId
         self.url = url
         self.opcua_client = opcua_client
@@ -358,7 +367,7 @@ class OpcuaConfig(object):
         self.variable_nodes = variable_nodes
         self.subscription = subsciption
         self.handles = handles
-        self.deviceId = deviceId
+        self.deviceId = None if opaque else serverId
         self.publishInterval = publishInterval
         self.filtered_nodes = []
         if len(variable_nodes) > 0:
@@ -423,7 +432,7 @@ class SubsriptionHandler(object):
         # don't try and do anything with the node as network calls to the server are not allowed outside of the main thread - so we just queue it
         incomingQueue = self.config.incoming_queue
         if incomingQueue != None:
-            incomingQueue.append({"source_time_stamp": data.monitored_item.Value.SourceTimestamp.strftime("%m/%d/%Y, %H:%M:%S"), "nodeid": node, "value": val})
+            incomingQueue.append({"deviceId": self.config.deviceId, "source_time_stamp": data.monitored_item.Value.SourceTimestamp.strftime("%m/%d/%Y, %H:%M:%S"), "nodeid": node, "value": val})
 
     def event_notification(self, event):
         print("Python: New event", event)
@@ -487,7 +496,7 @@ async def send_to_upstream(data, module_client, deviceId):
         msg.content_type = "application/json"
         msg.content_encoding = "utf-8"
         if deviceId:
-            msg.custom_properties = dict([("deviceId", deviceId)])
+            msg.custom_properties.update({ "registrationId": deviceId })
 
         try:
             await module_client.send_message_to_output(msg, "output1")
@@ -511,8 +520,13 @@ async def incoming_queue_processor(module_client):
                     if len(queue) > 0:
                         data = queue.pop(0)
                         data["name"] = client.get_node(data["nodeid"]).get_display_name().Text
-                        print("[{}] {} - {}".format(data["source_time_stamp"], data["name"], data["value"]))
-                        await send_to_upstream(data, module_client, value.deviceId)
+                        deviceId = data.get("deviceId")
+                        if deviceId == None:
+                            print("===>> [{}] {} - {}".format(data["source_time_stamp"], data["name"], data["value"]))
+                        else:
+                            print("===>> {}: [{}] {} - {}".format(deviceId, data["source_time_stamp"], data["name"], data["value"]))
+                        
+                        await send_to_upstream(data, module_client, deviceId)
             except Exception as e:
                 print("Processing incoming queue failed with exception: %s" % e)
                 pass
@@ -520,6 +534,7 @@ async def incoming_queue_processor(module_client):
 async def opcua_client_connect(value, serverId):
     global root_node_dict
     opcua_client_url = value.get("url")
+    opaque = value.get("opaque")
     pubInterval = value.get("publishInterval")
     if pubInterval == None:
         pubInterval = PUBLISH_INTERVAL_MS
@@ -553,7 +568,7 @@ async def opcua_client_connect(value, serverId):
             root_node_dict.update({serverId: root_node_name})
             walk_variables(object, variable_nodes)
             
-    config = OpcuaConfig(serverId, opcua_client_url, opcua_client, variable_nodes, None, [], None, pubInterval)
+    config = OpcuaConfig(serverId, opcua_client_url, opcua_client, variable_nodes, None, [], pubInterval, opaque)
     server_dict.update({serverId: config})
     
     if filterNodes == None:
