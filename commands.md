@@ -9,17 +9,18 @@ First, verify that you can see **"model-less command"** feature in your IoT Cent
     - verify **Command** is accessible under **Manage device** tab
 
     ![Azure IoT Edge VM](/assets/19_model_less_command.png)
+
 Using _"model-less command"_ you can send the following commands to IoT Edge Gateway module **"opcua_crud"** to handle OPC UA CRUD operations:
-    - **connect**: Connect to OPC UA server(s) once the OPC UA server(s) accessible
-    - **disconnect**: Disconnect from OPC UA server(s)
-    - **pubInterval**: Modify the OPC UA client publish events interval
-    - **filter**: Apply filter on OPC UA nodes specifying the node(s) to _"include"_, _"exclude"_, or _"reset"_ the filter
-    - **config**: Sends telemetry message containing OPC UA server(s) nodeid list
+- **connect**: Connect to OPC UA server(s) once the OPC UA server(s) accessible
+- **disconnect**: Disconnect from OPC UA server(s)
+- **pubInterval**: Modify the OPC UA client publish events interval
+- **filter**: Apply filter on OPC UA nodes specifying the node(s) to _"include"_, _"exclude"_, or _"reset"_ the filter
+- **config**: Sends telemetry message containing OPC UA server(s) nodeid list
 
 Executing commands, you need to fill up the following areas:
-    - **"Method name"**: please use one of the above command
-    - **"Module name"**: use IoT Edge Gateway module **"opcua_crud"**
-    - **"Payload"**: provide an array of structure defined below:
+- **Method name**: please use one of the above command
+- **Module name**: use IoT Edge Gateway module **"opcua_crud"**
+- **Payload**: provide an array of structure defined below:
 ``` py
         {
             # Required. It also serves as deviceId in Lucid pattern
