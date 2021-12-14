@@ -1,0 +1,4 @@
+asyncio
+opcua
+azure-iot-device
+cryptocode

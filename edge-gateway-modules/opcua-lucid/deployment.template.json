@@ -1,0 +1,145 @@
+{
+  "$schema-template": "4.0.0",
+  "modulesContent": {
+    "$edgeAgent": {
+      "properties.desired": {
+        "schemaVersion": "1.1",
+        "runtime": {
+          "type": "docker",
+          "settings": {
+            "minDockerVersion": "v1.25",
+            "loggingOptions": "",
+            "registryCredentials": {
+              "$CONTAINER_REGISTRY_USERNAME": {
+                "username": "$CONTAINER_REGISTRY_USERNAME",
+                "password": "$CONTAINER_REGISTRY_PASSWORD",
+                "address": "$CONTAINER_REGISTRY_USERNAME.azurecr.io"
+              }
+            }
+          }
+        },
+        "systemModules": {
+          "edgeAgent": {
+            "type": "docker",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.2",
+              "createOptions": {}
+            }
+          },
+          "edgeHub": {
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.2",
+              "createOptions": {
+                "HostConfig": {
+                  "PortBindings": {
+                    "5671/tcp": [
+                      {
+                        "HostPort": "5671"
+                      }
+                    ],
+                    "8883/tcp": [
+                      {
+                        "HostPort": "8883"
+                      }
+                    ],
+                    "443/tcp": [
+                      {
+                        "HostPort": "443"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "modules": {
+          "opcua_register": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.opcua_register}",
+              "createOptions": {
+                "HostConfig": {
+                  "Mounts": [
+                    {
+                      "Type": "bind",
+                      "Source": "/etc/certs",
+                      "Target": "/certs",
+                      "Mode": "ro",
+                      "RW": false,
+                      "Propagation": "rprivate"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "dpsEnrollmentGroupSaskey": {
+                "value": "${DPS_MASTER_SASKEY}"
+              },
+              "dpsScopeId": {
+                "value": "${DPS_SCOPE_ID}"
+              },
+              "modelId": {
+                "value": "${MODEL_ID}"
+              }
+            }
+          },
+          "opcua_crud": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.opcua_crud}",
+              "createOptions": {
+                "HostConfig": {
+                  "Mounts": [
+                    {
+                      "Type": "bind",
+                      "Source": "/etc/certs",
+                      "Target": "/certs",
+                      "RW": true,
+                      "Propagation": "rprivate"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "opaque": {
+                "value": "false"
+              }
+            }
+          }
+        }
+      }
+    },
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.2",
+        "routes": {
+          "register_to_iothub": "FROM /messages/modules/opcua_register/outputs/* INTO $upstream",
+          "opcua_crud_to_register": "FROM /messages/modules/opcua_crud/outputs/output1 INTO BrokeredEndpoint(\"/modules/opcua_register/inputs/input1\")"
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 7200
+        }
+      }
+    },
+    "opcua_register": {
+      "properties.desired": {}
+    },
+    "opcua_crud": {
+      "properties.desired": {
+        "publishInterval": 500
+      }
+    }
+  }
+}
