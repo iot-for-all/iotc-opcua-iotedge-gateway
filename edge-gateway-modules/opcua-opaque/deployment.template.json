@@ -64,7 +64,24 @@
             "restartPolicy": "always",
             "settings": {
               "image": "${MODULES.opcua_crud}",
-              "createOptions": {}
+              "createOptions": {
+                "HostConfig": {
+                  "Mounts": [
+                    {
+                      "Type": "bind",
+                      "Source": "/etc/certs",
+                      "Target": "/certs",
+                      "RW": true,
+                      "Propagation": "rprivate"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "opaque": {
+                "value": "true"
+              }
             }
           }
         }

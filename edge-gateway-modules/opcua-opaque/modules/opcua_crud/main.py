@@ -1,14 +1,16 @@
 # Copyright (c) Microsoft. All rights reserved.
 # Licensed under the MIT license. See LICENSE file in the project root for
 # full license information.
-from asyncio.tasks import sleep, wait
+from asyncio.tasks import sleep
 import json
 import time
 import threading
+import base64
 import os
 import sys
 sys.path.insert(0, "..")
 import asyncio
+import cryptocode
 
 from opcua import Client
 from azure.iot.device import Message, MethodResponse
@@ -26,9 +28,11 @@ TWIN_CALLBACKS = 0
 RECEIVED_MESSAGES = 0
 PAUSE_IN_SECOND = 15
 PUBLISH_INTERVAL_MS = 500
+OPAQUE = False
 
 server_dict = {}
 root_node_dict = {}
+startTimer = time.process_time()
 
 def message_handler(message):
     print("Message received on INPUT 1")
@@ -47,7 +51,7 @@ async def get_twin(module_client):
 # define behavior for receiving a twin patch
 async def twin_patch_handler(patch):
     print("the data in the desired properties patch was: {}".format(patch))
-    print("set the publishing interval for all subscription")
+    print("set default publishing interval in desired properties")
     # send new reported properties
     if 'publishInterval' in patch:
         print("Reporting desired changes {}".format(patch))
@@ -68,10 +72,10 @@ async def twin_patch_handler(patch):
 async def method_request_handler(method_request):
     print("Method request payload received: {}".format(method_request.payload))
     # Determine how to respond to the method request based on the method name
-    if method_request.name == "add":
-        await add_method_handler(method_request)
-    elif method_request.name == "remove":
-        await remove_method_handler(method_request)
+    if method_request.name == "connect":
+        await connect_method_handler(method_request)
+    elif method_request.name == "disconnect":
+        await disconnect_method_handler(method_request)
     elif method_request.name == "config":
         await config_method_handler(method_request)
     elif method_request.name == "filter":
@@ -87,51 +91,36 @@ async def method_request_handler(method_request):
         method_response = MethodResponse.create_from_method_request(method_request, status, payload)
         await module_client.send_method_response(method_response)
     
-async def add_method_handler(method_request):
+async def connect_method_handler(method_request):
     result = True
     data = {}
-    reported_properties = {}
-    reported_properties["opcua"] = {}
+
     for item in method_request.payload:
+        reported_properties = {}
+        reported_properties["opcua"] = {}
         serverId = item["serverId"]
         url = item["url"]
-        pubInterval = item.get("publishInterval")
-        if pubInterval == None:
-            pubInterval = PUBLISH_INTERVAL_MS
-            
-        value = { "url": url, "publishInterval": pubInterval }
-        if item.get("ops") != None:
-            value["ops"] = item["ops"]
         
-        if item.get("filter") != None:
-            value["filter"] = item["filter"]
-            
-        value["opaque"] = item.get("opaque")
+        value = {}
+        print("item: {}".format(item))
+        for att, val in item.items():
+            if val != "serverId":
+                value.update({ att: val })
         
-        # config = url_dict.get(url)
-        config = server_dict.get(serverId)
-        if config == None:
-            await opcua_client_connect(value, serverId)
-            # config = url_dict.get(url)
-            config = server_dict.get(serverId)
-            if config == None:
-                print("Failed to connect to '%s'" % url)
-                data.update({config.serverId: { "status": 400, "data": "Failed to connect to OPC UA server '{}'".format(serverId)}})
-                result = False
-            else:
-                # url_dict.update({url: config})
-                server_dict.update({serverId: config})
-                data.update({config.serverId: { "status": 200, "data": "Established connection to OPC UA server '{}'".format(serverId)}})
-                # send new reported properties
-                reported_properties["opcua"].update({ config.serverId: value })
-                print("connect to '%s'" % url)
-        else:
-            print("Already connected. Skipping connecting to '%s'" % url)
-            data.update({config.serverId: { "status": 409, "data": "Already to connect to OPC UA server '{}'".format(serverId)}})
-
-    if len(reported_properties["opcua"]) > 0:
+        if  value.get("publishInterval") == None:
+            value.update({"publishInterval": PUBLISH_INTERVAL_MS})
+            
+        print("connect_method_handler: {}: {}".format(serverId, value))
+        secrets = value.get("secrets")
+        if secrets != None:
+            value["secrets"] = cryptocode.encrypt(secrets, url.lower())
+        reported_properties["opcua"].update({ serverId: value })
         print("Setting reported opcua to {}".format(reported_properties["opcua"]))
-        await module_client.patch_twin_reported_properties(reported_properties)
+        try:
+            await module_client.patch_twin_reported_properties(reported_properties)
+            data.update({ serverId: { "status": 201, "data": "Scheduled connection to OPC UA server '{}'".format(serverId)}})
+        except:
+            data.update({ serverId: { "status": 400, "data": "Failed to schedule connection to OPC UA server '{}'".format(serverId)}})
     
     payload = {"result": result, "data": data}  # set response payload
     status = 207
@@ -139,31 +128,36 @@ async def add_method_handler(method_request):
     # Send the response
     method_response = MethodResponse.create_from_method_request(method_request, status, payload)
     await module_client.send_method_response(method_response)
-    print("executed add")
+    print("executed connect")
     
-async def remove_method_handler(method_request):
+async def disconnect_method_handler(method_request):
     if len(server_dict) == 0:
-        print("Found no client to remove")
-        payload = {"result": False, "data": "Found no client to remove"}
+        print("Found no client to disconnect")
+        payload = {"result": False, "data": "Found no client to disconnect"}
         status = 404
         method_response = MethodResponse.create_from_method_request(method_request, status, payload)
         await module_client.send_method_response(method_response)
-        print("executed remove")
+        print("executed disconnect")
         return
-    
+
     result = True
     data = {}
-    reported_properties = {}
-    reported_properties["opcua"] = {}
+
     for item in method_request.payload:
+        reported_properties = {}
+        reported_properties["opcua"] = {}
         serverId = item["serverId"]
+        print("Removing OPC UA server config %s from reported properties" % serverId)
+        reported_properties["opcua"].update({ serverId: None })
+        await module_client.patch_twin_reported_properties(reported_properties)
+        
         config = server_dict.get(serverId)
         if config == None:
-            print("Found no config to apply remove for %s" % serverId)
-            data.update({config.serverId: { "status": 404, "data": "Found no config to apply remove for '{}'".format(serverId)}})
+            print("Found no config to apply disconnect for %s" % serverId)
+            data.update({config.serverId: { "status": 404, "data": "Found no config to apply disconnect for '{}'".format(serverId)}})
             result = False
         else:
-            print("remove server: %s" % serverId)
+            print("disconnect server: %s" % serverId)
             subscription = config.subscription
             handles = config.handles
             if subscription != None and handles != None and len(handles) > 0:
@@ -171,12 +165,7 @@ async def remove_method_handler(method_request):
                 await sleep(5)
 
             server_dict.pop(serverId, None)
-            reported_properties["opcua"].update({ config.serverId: None })
-            print("Setting reported opcua to {}".format(reported_properties["opcua"]))
-            data.update({config.serverId: { "status": 200, "data": "Removed connection to OPC UA server '{}'".format(serverId)}})
-        
-    if len(reported_properties["opcua"]) > 0:
-        await module_client.patch_twin_reported_properties(reported_properties)
+            data.update({config.serverId: { "status": 200, "data": "Disconnect OPC UA server '{}'".format(serverId)}})
     
     payload = {"result": result, "data": data}  # set response payload
     status = 207
@@ -184,7 +173,7 @@ async def remove_method_handler(method_request):
     # Send the response
     method_response = MethodResponse.create_from_method_request(method_request, status, payload)
     await module_client.send_method_response(method_response)
-    print("executed removed")
+    print("executed disconnect")
     
 async def config_method_handler(method_request):
     result = True
@@ -225,7 +214,7 @@ async def config_method_handler(method_request):
         await module_client.send_message_to_output(msg, "output1")
         print("completed sending config message")
     except Exception as e:
-        print("Failed to send config message: %s" % e)
+        print("Failed to send config message: {}".format(e))
         payload = {"result": False, "data": data}
         status = 400
 
@@ -244,6 +233,7 @@ async def filter_method_handler(method_request):
         print("executed filter")
         return
     
+    global startTimer
     result = True
     data = {}
     reported_properties = {}
@@ -257,37 +247,39 @@ async def filter_method_handler(method_request):
             result = False
         else:
             print("Applying filter to %s" % serverId)
-            ops = item.get("ops")
-            if ops == None:
-                ops = "include"
+            filter = item.get("filter")
+            if filter == None:
+                print("Found no config to apply filter for %s" % serverId)
+                data.update({config.serverId: { "status": 400, "data": "Missing filter for '{}'".format(serverId)}})
+                result = False
                     
             pubInterval = item.get("publishInterval")
             if pubInterval == None:
                 pubInterval = config.publishInterval
                 if pubInterval == None:
                     pubInterval = PUBLISH_INTERVAL_MS
-                    
-            opaque = item.get("opaque")
-                    
-            if ops == "reset":
+            
+            startTimer = time.process_time()
+            action = filter["action"]
+            if action == "reset":
                 print("Reseting nodeid filter on server %s" % config.serverId)
                 await config.reset_subscription_filter()
                 
-                entry = { "url": config.url, "publishInterval": pubInterval, "opaque": opaque, "ops": None, "filter": None }
+                entry = { "url": config.url, "publishInterval": pubInterval, "filter": None }
                 reported_properties["opcua"].update({ config.serverId: entry })
                 print("Removing reported opcua filter section {}".format(entry))
                 data.update({config.serverId: { "status": 200, "data": "Reseted filter on server '{}'".format(serverId)}})
             else:
-                print("Apply filter mode %s" % ops)
-                nodes = item.get("filter")
+                print("Apply filter mode %s" % action)
+                nodes = filter.get("nodes")
                 if nodes == None or len(nodes) <= 0:
                     print("Cannot apply empty filter for %s" % serverId)
                     continue
             
                 print("Filter nodes: {}".format(nodes))
-                await config.apply_subscription_filter(ops, nodes)
+                await config.apply_subscription_filter({ "action": action, "nodes": nodes})
             
-                entry = { "url": config.url, "publishInterval": pubInterval, "opaque": opaque, "ops": ops, "filter": nodes }
+                entry = { "url": config.url, "publishInterval": pubInterval, "filter": { "action": action, "nodes": nodes} }
                 reported_properties["opcua"].update({ config.serverId: entry })
                 print("Setting reported opcua to {}".format(entry))
                 data.update({config.serverId: { "status": 200, "data": "Applied filter on server '{}'".format(serverId)}})
@@ -314,6 +306,7 @@ async def pubInterval_method_handler(method_request):
         print("executed pubInterval")
         return
     
+    global startTimer
     result = True
     data = {}
     reported_properties = {}
@@ -332,12 +325,12 @@ async def pubInterval_method_handler(method_request):
                 pubInterval = config.publishInterval
                 if pubInterval == None:
                     pubInterval = PUBLISH_INTERVAL_MS
-                    
-            opaque = item.get("opaque")
+            
+            startTimer = time.process_time()
             print("changing publishing interval for server %s to %d ms" % (serverId, pubInterval))
             await config.publish_interval_update(pubInterval)
             
-            entry = { "publishInterval": pubInterval, "opaque": opaque }
+            entry = { "publishInterval": pubInterval }
             reported_properties["opcua"].update({ config.serverId: entry })
             print("Setting reported opcua to {}".format(entry))
             data.update({config.serverId: { "status": 200, "data": "Changed publish interval on server '{}'".format(serverId)}})
@@ -355,21 +348,21 @@ async def pubInterval_method_handler(method_request):
     print("executed pubInterval")
 
 class OpcuaConfig(object):
-    def __init__(self, serverId, url, opcua_client, variable_nodes, subsciption, handles, publishInterval, opaque) -> None:
-        if opaque == None:
-            opaque = True
-        
-        self.opaque = opaque
+    def __init__(self, serverId, url, opcua_client, variable_nodes) -> None:
         self.serverId = serverId
+        self.secrets = None
+        self.cert = None
+        self.certKey = None
+        self.modelId = None
         self.url = url
         self.opcua_client = opcua_client
-        self.incoming_queue = []
         self.variable_nodes = variable_nodes
-        self.subscription = subsciption
-        self.handles = handles
-        self.deviceId = None if opaque else serverId
-        self.publishInterval = publishInterval
+        self.incoming_queue = []
+        self.publishInterval = None
+        self.subscription = None
+        self.handles = []
         self.filtered_nodes = []
+        self.registrationId = serverId
         if len(variable_nodes) > 0:
             for variable_node in variable_nodes:
                 self.filtered_nodes.append(variable_node)
@@ -377,20 +370,27 @@ class OpcuaConfig(object):
     async def publish_interval_update(self, publishInterval):
         if self.publishInterval != publishInterval:
             self.publishInterval = publishInterval
-            await self.apply_subscription_filter("include", self.filtered_nodes)
-            
-    async def apply_subscription_filter(self, ops, nodes):
-        if nodes == None or len(nodes) == 0:
-            if len(self.handles) > 0:
-                self.subscription.unsubscribe(self.filtered_nodes)
-        else:
+            await self.apply_subscription_filter({ "action": "include", "nodes": self.filtered_nodes })
+
+
+    async def apply_subscription_filter(self, filter):
+        action = filter.get("action")
+        nodes = filter.get("nodes")
+        if action == None:
+            print("Filter 'action' cannot be empty . . .")
+            return
+        
+        if action == 'reset':
+            return self.reset_subscription_filter()
+        
+        if nodes != None and len(nodes) > 0:
             filteredNodes = []
             for variable_node in self.variable_nodes:
                 if variable_node in nodes:
-                    if  ops == 'include':
+                    if  action == 'include':
                         filteredNodes.append(variable_node)
                 else:
-                    if ops == 'exclude':
+                    if action == 'exclude':
                         filteredNodes.append(variable_node)
                 
             handles = []
@@ -405,6 +405,7 @@ class OpcuaConfig(object):
                 
             self.handles = handles
             self.filtered_nodes = filteredNodes
+
             
     async def reset_subscription_filter(self):
         filteredNodes = []
@@ -432,7 +433,7 @@ class SubsriptionHandler(object):
         # don't try and do anything with the node as network calls to the server are not allowed outside of the main thread - so we just queue it
         incomingQueue = self.config.incoming_queue
         if incomingQueue != None:
-            incomingQueue.append({"deviceId": self.config.deviceId, "source_time_stamp": data.monitored_item.Value.SourceTimestamp.strftime("%m/%d/%Y, %H:%M:%S"), "nodeid": node, "value": val})
+            incomingQueue.append({"registrationId": self.config.registrationId, "secrets": self.config.secrets, "cert": self.config.cert, "certKey": self.config.certKey, "modelId": self.config.modelId, "source_time_stamp": data.monitored_item.Value.SourceTimestamp.strftime("%m/%d/%Y, %H:%M:%S"), "nodeid": node, "value": val})
 
     def event_notification(self, event):
         print("Python: New event", event)
@@ -474,7 +475,7 @@ def json_dump_struct(struct_value):
             value = value + json_dump_struct(getattr(struct_value, sub_var[0]))
     return value + "}"
 
-async def send_to_upstream(data, module_client, deviceId):
+async def send_to_upstream(data, module_client, customProperties):
     if module_client and module_client.connected:
         nodeid = f'"{data["nodeid"]}"'
         name = f'"{data["name"]}"'
@@ -495,9 +496,13 @@ async def send_to_upstream(data, module_client, deviceId):
         msg = Message(payload)
         msg.content_type = "application/json"
         msg.content_encoding = "utf-8"
-        if deviceId:
-            msg.custom_properties.update({ "registrationId": deviceId })
-
+        
+        # print("send_to_upstream CustomeProperties: {}".format(customProperties))
+        for k, v in customProperties.items():
+            if v != None:
+                msg.custom_properties[k] = v
+        
+        # print("msg.custom_properties 2: {}".format(msg.custom_properties))
         try:
             await module_client.send_message_to_output(msg, "output1")
             print("completed sending message")
@@ -505,43 +510,64 @@ async def send_to_upstream(data, module_client, deviceId):
             print("call to send message timed out")
 
 async def incoming_queue_processor(module_client):
+    global startTimer
+    startTimer = time.process_time()
     while True:
-        if len(server_dict) > 0:
-            try:
+        try:
+            if len(server_dict) > 0:
                 for key, value in server_dict.items():
                     if value == None:
                         pass
-                    
+                        
                     queue = value.incoming_queue
                     client = value.opcua_client
                     if queue == None or client == None:
                         pass
-                    
+                        
                     if len(queue) > 0:
                         data = queue.pop(0)
                         data["name"] = client.get_node(data["nodeid"]).get_display_name().Text
-                        deviceId = data.get("deviceId")
-                        if deviceId == None:
+                        registrationId = data.get("registrationId")
+                        properties = {}
+                        properties["registrationId"] = registrationId
+                        properties["modelId"] = data.get("modelId")
+                        if data.get("cert") != None:
+                            properties["cert"] = data["cert"]
+                        if data.get("certKey") != None:
+                            properties["certKey"] = data["certKey"]
+                            
+                        print("incoming_queue_processor: CustomeProperties: {}".format(properties))
+                        # Adding secrets to properties to not to pollute the logs with secrets
+                        properties["secrets"] = data.get("secrets")
+
+                        if registrationId == None:
                             print("===>> [{}] {} - {}".format(data["source_time_stamp"], data["name"], data["value"]))
                         else:
-                            print("===>> {}: [{}] {} - {}".format(deviceId, data["source_time_stamp"], data["name"], data["value"]))
-                        
-                        await send_to_upstream(data, module_client, deviceId)
-            except Exception as e:
-                print("Processing incoming queue failed with exception: %s" % e)
-                pass
+                            print("===>> {}: [{}] {} - {}".format(registrationId, data["source_time_stamp"], data["name"], data["value"]))
+                            
+                        await send_to_upstream(data, module_client, properties)
+                
+            if time.process_time() - startTimer > 10:
+                startTimer = time.process_time()
+                await ping(module_client)
+                
+        except Exception as e:
+            print("Processing incoming queue failed with exception: {}".format(e))
+            pass
             
 async def opcua_client_connect(value, serverId):
     global root_node_dict
     opcua_client_url = value.get("url")
-    opaque = value.get("opaque")
+    modelId = value.get("modelId")
     pubInterval = value.get("publishInterval")
     if pubInterval == None:
         pubInterval = PUBLISH_INTERVAL_MS
-    filterNodes = value.get("filter")
-    ops = value.get("ops")
-    if ops == None:
-        ops = "include"
+
+    filter = value.get("filter")
+    if filter != None and filter.get("action") == None:
+        print("Skipping filter since required 'filter.action' is missing")
+        filter = None
+        
     print ( "opcua_client_connect: %s" % (opcua_client_url))
     opcua_client = Client(opcua_client_url)
 
@@ -551,7 +577,7 @@ async def opcua_client_connect(value, serverId):
         opcua_client.connect()
         print("connected to OPC UA server")
     except Exception as e:
-        print("Connection to OPC UA server failed with exception: %s" % e)
+        print("Connection to OPC UA server failed with exception: {}".format(e))
         return
     
     opcua_client.load_type_definitions()
@@ -568,10 +594,49 @@ async def opcua_client_connect(value, serverId):
             root_node_dict.update({serverId: root_node_name})
             walk_variables(object, variable_nodes)
             
-    config = OpcuaConfig(serverId, opcua_client_url, opcua_client, variable_nodes, None, [], pubInterval, opaque)
+    config = OpcuaConfig(serverId, opcua_client_url, opcua_client, variable_nodes)
     server_dict.update({serverId: config})
     
-    if filterNodes == None:
+    secrets = value.get("secrets")
+    if secrets != None:
+        b64Decoded = base64.b64decode(secrets.encode('utf-8'))
+        secretsString = b64Decoded.decode("utf-8")
+        # secrets = eval(secretsString)
+        secretsJson = json.loads(secretsString)
+        print("opcua_client_connect: Device secrets: {}".format(secretsJson))
+        
+        clientSecrets = secretsJson.get("client")
+        if clientSecrets != None:
+            clientSecretsType = clientSecrets.get("type")
+            if clientSecretsType == "cert":
+                cert = clientSecrets.get("cert")
+                if cert != None:
+                    publicCert = cert.get("public")
+                    if publicCert != None:
+                        publicFileName = "{}_public.pem".format(serverId)
+                        publicFile = open("/certs/{}".format(publicFileName), "w+")
+                        publicFile.write(publicCert)
+                        publicFile.close()
+                        config.cert = "/certs/{}".format(publicFileName)
+                        print("public cert abspath: {}".format(config.cert))
+                        
+                    privateCert = cert.get("private")
+                    if privateCert != None:
+                        privateFileName = "{}_private.pem".format(serverId)
+                        privateFile = open("/certs/{}".format(privateFileName), "w+")
+                        privateFile.write(privateCert)
+                        privateFile.close()
+                        config.certKey = "/certs/{}".format(privateFileName)
+                        print("private cert abspath: {}".format(config.certKey))
+
+        config.secrets = secrets
+        print("opcua_client_connect: secrets: {}".format(secrets))
+    
+    config.modelId = modelId
+    config.publishInterval = pubInterval
+    config.registrationId = None if OPAQUE else serverId
+    
+    if filter == None:
         # use subscription to get values
         handles = []
         handler = SubsriptionHandler(config)
@@ -580,10 +645,49 @@ async def opcua_client_connect(value, serverId):
             node = opcua_client.get_node(node)
             handles.append(subscription.subscribe_data_change(node))
 
+        config.publishInterval = pubInterval
         config.subscription = subscription
         config.handles = handles
     else:
-        await config.apply_subscription_filter(ops, filterNodes)
+        await config.apply_subscription_filter(filter)
+
+
+async def ping(module_client):
+    try:
+        print("Ping opcua servers . . .")
+        twin = await get_twin(module_client)
+        print("twin: {}".format(twin))
+        reported = twin["reported"]
+        if 'opcua' in reported and len(reported['opcua']) > 0:
+            for key, value in reported['opcua'].items():
+                print("Found configuration in twin.reported for opcua server %s" % key)
+                config = server_dict.get(key)
+                if config == None:
+                    print("Not found opcua server '%s' in cache . . ." % key)
+                    secrets = value.get("secrets")
+                    if secrets != None:
+                        url = value.get("url")
+                        value["secrets"] = cryptocode.decrypt(secrets, url.lower())
+                        print("secrets: %s" % value["secrets"])
+                    print("Connecting to opcua server %s" % key)
+                    await opcua_client_connect(value, key)
+                else:
+                    try:
+                        print("Sending hello message to opcua server %s" % key)
+                        config.opcua_client.send_hello()
+                    except Exception as e:
+                        print("Ping opcus server '{}' failed with eception {}".format(key, e))
+                        secrets = value.get("secrets")
+                        if secrets != None:
+                            url = value.get("url")
+                            value["secrets"] = cryptocode.decrypt(secrets, url.lower())
+                        print("Trying to re-connect to opcua server %s" % key)
+                        await opcua_client_connect(value, key)
+    except Exception as ex:
+        print("Ping failed with eception {}".format(ex))
+        pass
+        
+    print("Ping opcua servers completed . . .")
 
 async def main():
     try:
@@ -593,11 +697,19 @@ async def main():
 
         # The client object is used to interact with your Azure IoT hub.
         global module_client
+        global startTimer
         global PUBLISH_INTERVAL_MS
+        global OPAQUE
+        
         module_client = IoTHubModuleClient.create_from_edge_environment()
 
         # connect the client.
         await module_client.connect()
+        
+        if os.getenv("opaque", "false") == "true":
+            OPAQUE = True
+            
+        print("Opaque: {}".format(OPAQUE))
         
         twin = await get_twin(module_client)
         desired = twin["desired"]
@@ -605,15 +717,6 @@ async def main():
         print("{}".format(desired))
         if 'publishInterval' in desired and desired['publishInterval'] > 10:
             PUBLISH_INTERVAL_MS = desired['publishInterval']
-        
-        # Connect to opcua servers in twin reported properties if any
-        reported = twin["reported"]
-        print("Twin properties reported:")
-        print("{}".format(reported))
-        if 'opcua' in reported:
-            if 'opcua' in reported and len(reported['opcua']) > 0:
-                for key, value in reported['opcua'].items():
-                    await opcua_client_connect(value, key)
                 
         # set the message handler on the module
         module_client.on_message_received = message_handler
@@ -623,8 +726,7 @@ async def main():
         
         # Set the method request handler on the module
         module_client.on_method_request_received = method_request_handler
-
-        # listeners = asyncio.gather(input1_listener(module_client), twin_patch_listener(module_client), method_request_handler(module_client))
+       
         tasks = []
         tasks.append(asyncio.create_task(incoming_queue_processor(module_client)))
         await asyncio.gather(*tasks)
@@ -635,7 +737,7 @@ async def main():
         await module_client.disconnect()
 
     except Exception as e:
-        print ( "Unexpected error %s " % e )
+        print ( "Unexpected error {}".format(e))
         raise
         
 if __name__ == "__main__":
