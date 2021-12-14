@@ -18,7 +18,9 @@ In this pattern IoT Edge Gateway is only device known in the cloud. All capabili
 
     ![Azure IoT Edge VM](/assets/02_device_status.png)
 6. [IoT Edge Gateway commands to handle OPC UA CRUD](commands.md)
-7. Connect to your OPC UA server and click on device and select _"Raw data"_ tab and verify the telemetry is flowing
+7. Connect to your OPC UA server using the following _"model-less command"_ command as mentioned in step 6:
+    - Method name: **connect**, Module name: **opcua_crud**, Payload: **[{"serverId": "opcua_client_1", "url": "opc.tcp://<YOUR_OPCUA_SERVER_VM_IPADDRESS>:4840/cnc_widget/server/"}]**
+8. click on IoT Edge Gateway device and select _"Raw data"_ tab and verify the telemetry is flowing
 
     ![Azure IoT Edge VM](/assets/03_device_rawdata.png)
 
