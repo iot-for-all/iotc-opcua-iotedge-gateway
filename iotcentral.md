@@ -37,7 +37,7 @@
     ![IoT Central App](/assets/10_device_template_rel.png)
 9. Set the relationship by clicking on **"+ Add relationship"**, put "any" word in all 3 textboxes (Display name, Name, and Target), then click on **"Save"**, and finally **"Publish"**
 
-    ![IoT Central App](/assets/11_device_template_publish.png)
+    ![IoT Central App](/assets/11_device_template_pub.png)
 10. Click on **"Devices"**, select the template you just created, and click on **"Create a device"** button to register an IoT Edge Gateway device to your application
 
     ![IoT Central App](/assets/12_device_template_select.png)
