@@ -73,7 +73,7 @@ In this pattern IoT Edge Gateway is only device known in the cloud. All capabili
 In this pattern IoT Edge Gateway (OPC UA client) and leaf devices (OPC UA server) known in the cloud.
 
 1. Setup and run [OPC UA Server Simulator](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/tree/main/opcua-server-sim/README.md#to-setup-simulator)
-2. Build and publish [OPC UA identity custom IoT Edge module](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/tree/main/edge-gateway-modules/opcua-lucid/README.md)
+2. Build and publish [OPC UA crud & identity custom IoT Edge modules](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/tree/main/edge-gateway-modules/opcua-lucid/README.md)
 3. Setup [IoT Central application](iotcentral.md)
 4. Deploy an [IoT Edge enabled Linux VM](edgevm.md)
 5. Confim that IoT Edge device status shows _"Provisioned"_ in your IoT Central application
