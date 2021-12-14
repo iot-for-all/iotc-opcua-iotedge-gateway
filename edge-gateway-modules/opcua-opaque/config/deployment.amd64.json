@@ -43,7 +43,12 @@
             "restartPolicy": "always",
             "settings": {
               "image": "<YOUR_ACR_REGISTRY_NAME>.azurecr.io/opcua_crud:0.0.1-amd64",
-              "createOptions": "{}"
+              "createOptions": "{\"HostConfig\":{\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"/etc/certs\",\"Target\":\"/certs\",\"RW\":true,\"Propagation\":\"rprivate\"}]}}"
+            },
+            "env": {
+              "opaque": {
+                "value": "true"
+              }
             }
           }
         }
