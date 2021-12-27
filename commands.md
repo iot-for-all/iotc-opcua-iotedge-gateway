@@ -8,7 +8,7 @@ First, verify that you can see **"model-less command"** feature in your IoT Cent
     - refersh the page
     - verify **Command** is accessible under **Manage device** tab
 
-    ![Azure IoT Edge VM](/assets/19_model_less_command.png)
+    [<img src=./assets/15_model_less_command.png heigth="70%" width="70%">](/assets/15_model_less_command.png)
 
 Using _"model-less command"_ you can send the following commands to IoT Edge Gateway module **"opcua_crud"** to handle OPC UA CRUD operations:
 - **connect**: Connect to OPC UA server(s) once the OPC UA server(s) accessible

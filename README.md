@@ -16,13 +16,13 @@ In this pattern IoT Edge Gateway is only device known in the cloud. All capabili
 4. Deploy an [IoT Edge enabled Linux VM](edgevm.md)
 5. Confim that IoT Edge device status shows _"Provisioned"_ in your IoT Central application
 
-    ![Azure IoT Edge VM](/assets/02_device_status.png)
+    [<img src=./assets/02_device_status.png heigth="70%" width="70%">](/assets/02_device_status.png)
 6. [IoT Edge Gateway commands to handle OPC UA CRUD](commands.md)
 7. Connect to your OPC UA server using the following _"model-less command"_ command as mentioned in step 6:
     - Method name: **connect**, Module name: **opcua_crud**, Payload: **[{"serverId": "opcua_client_1", "url": "opc.tcp://<YOUR_OPCUA_SERVER_VM_IPADDRESS>:4840/cnc_widget/server/"}]**
 8. click on IoT Edge Gateway device and select _"Raw data"_ tab and verify the telemetry is flowing
 
-    ![Azure IoT Edge VM](/assets/03_device_rawdata.png)
+    [<img src=./assets/03_device_rawdata.png heigth="70%" width="70%">](/assets/03_device_rawdata.png)
 
 &nbsp;
 ## Lucid pattern
@@ -34,17 +34,17 @@ In this pattern IoT Edge Gateway (OPC UA client) and leaf devices (OPC UA server
 4. Deploy an [IoT Edge enabled Linux VM](edgevm.md)
 5. Confim that IoT Edge device status shows _"Provisioned"_ in your IoT Central application
 
-    ![Azure IoT Edge VM](/assets/02_device_status.png)
+    [<img src=./assets/03_device_status.png heigth="70%" width="70%">](/assets/03_device_status.png)
 6. [IoT Edge Gateway commands to handle OPC UA CRUD](commands.md)
 7. Connect to your OPC UA server using the following _"model-less command"_ command as mentioned in step 6:
-    - Method name: **connect**, Module name: **opcua_crud**, Payload: **[{"serverId": "opcua_client_1", "url": "opc.tcp://<YOUR_OPCUA_SERVER_VM_IPADDRESS>:4840/cnc_widget/server/"}]**
-8. Confim that IoT Edge device and **opcua_client_1** devices status shows _"Provisioned"_ in your IoT Central application
+    - Method name: **connect**, Module name: **opcua_crud**, Payload: **[{"serverId": "opcua01", "url": "opc.tcp://<YOUR_OPCUA_SERVER_VM_IPADDRESS>:4840/cnc_widget/server/"}]**
+8. Confim that IoT Edge device child device **opcua01** status shows _"Provisioned"_ in your IoT Central application
 
-    ![Azure IoT Edge VM](/assets/15_device_status.png)
-9. Confim that IoT Edge device has **opcua_client_1** device as its child device in your IoT Central application
+    [<img src=./assets/04_device_status.png heigth="70%" width="70%">](/assets/04_device_status.png)
+9. Confim that IoT Edge device has **opcua01** device as its child device in your IoT Central application
 
-    ![Azure IoT Edge VM](/assets/16_gateway_child_device.png)
-10. Click on **opcua_client_1** device and select _"Raw data"_ tab and verify the telemetry is flowing
+    [<img src=./assets/04_gateway_child_device.png heigth="70%" width="70%">](/assets/04_gateway_child_device.png)
+10. Click on **opcua01** device and select _"Raw data"_ tab and verify the telemetry is flowing
 
-    ![Azure IoT Edge VM](/assets/17_device_rawdata.png)
+    [<img src=./assets/04_device_rawdata.png heigth="70%" width="70%">](/assets/04_device_rawdata.png)
 

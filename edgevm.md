@@ -45,7 +45,7 @@ Creating **Ubuntu Server 18.04 LTS** based virtual machine will install the late
     ```
     Get the **IDScope**, **DeviceID**, and **PrimaryKey** from your IoT Central application from _"Device connection"_ page
 
-    ![Azure IoT Edge VM](/assets/01_device_connect.png)
+    [<img src=./assets/01_device_connect.png heigth="70%" width="70%">](/assets/01_device_connect.png)
 4. Deployment completes in around 3 minutes.
 5. Confirm Azure Edge Runtime is installed on the VM by executing the following command in SSH shell
     ```Linux
@@ -58,4 +58,8 @@ Creating **Ubuntu Server 18.04 LTS** based virtual machine will install the late
 7. Check IoT Edge status
     ```Linux
     sudo iotedge list
+    ```
+8. Run the following command to create the **"certs"** folder for saving runtime modbus server/client certificates
+    ```Linux
+    sudo mkdir -p -v /etc/certs
     ```

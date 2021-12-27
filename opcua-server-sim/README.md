@@ -41,7 +41,7 @@
 				--resource-group <YOUR_RESOURCE_GROUP_NAME> \
 				--name <YOUR_VM_NAME>
 		```
-	![OPC UA Server Sim](/assets/18_sim_server_ports.png)
+	[<img src=../assets/18_sim_server_ports.png heigth="70%" width="70%">](../assets/18_sim_server_ports.png)
 4. Connect to the Windows Virtual Machine using publicIpAddress returned in the output from your VM
 	``` shell
 		mstsc /v:<VM_PUBLIC_IP_ADDRESS>
