@@ -105,20 +105,49 @@ To do base64 encoding the secrets value you might want to execute some thing lik
     import json
     import base64
 
-    secrets = {}
-    secrets["client"] = {}
-    secrets["client"]["type"] = "cert"
-    secrets["client"]["cert"] = {}
-    secrets["client"]["cert"]["public"] = "<YOUR_PUBLIC_PEM_CONTENT>"
-    secrets["client"]["cert"]["private"] = "<YOUR_PRIVATE_PEM_CONTENT>"
+    payloads = []
+    payloads.append({
+        "serverId": "<YOUR_DEVICE_ID>",
+        "url": "<YOUR_OPCUA_SERVER_URL>",
+        "publishInterval": 800,
+        "modelId": "<YOUR_OPCUA_CLIENT_MODEL_ID>",
+        "secrets": {
+            "client": {
+                "type": "sas",
+                "sas": {
+                    "key": "<YOUR_OPCUA_CLIENT_SASKEY>"
+                }
+            }
+        }
+    })
 
-    secretsStr = json.dumps(secrets, separators=(',', ':'))
-    b64Encoded = base64.b64encode(secretsStr.encode('utf-8'))
-    secretsEncodedDecod = b64Encoded.decode("utf-8")
+    payloads.append({
+        "serverId": "<YOUR_DEVICE_ID>",
+        "url": "<YOUR_OPCUA_SERVER_URL>",
+        "modelId": "<YOUR_OPCUA_CLIENT_MODEL_ID>",
+        "secrets": {
+            "client": {
+                "type": "cert",
+                "cert": {
+                    "public": """<YOUR_PUBLIC_PEM_CONTENT>""",
+                    "private": """<YOUR_PRIVATE_PEM_CONTENT>"""
+                }
+            }
+        }
+    })
 
-    config = {}
-    config["serverId"] = "<YOUR_DEVICE_ID>
-    config["url"] = "<YOUR_OPCUA_SERVER_URL>
-    config["secrets"] = secretsEncodedDecod
-    print("{}".format(config))
+    for payload in payloads:
+        secrets = payload.get("secrets")
+        if secrets:
+            secretsStr = json.dumps(secrets, separators=(',', ':'))
+            b64Encoded1 = base64.b64encode(secretsStr.encode('utf-8'))
+            payload["secrets"] = b64Encoded1.decode("utf-8")
+
+    print(">")
+    print(">")
+    print(">")
+    print("-" * 100)
+    print("{}".format(json.dumps(payloads)))
+    print("-" * 100)
+
 ```
