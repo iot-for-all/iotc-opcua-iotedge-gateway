@@ -21,82 +21,49 @@ Executing commands, you need to fill up the following areas:
 - **Method name**: please use one of the above command
 - **Module name**: use IoT Edge Gateway module **"opcua_crud"**
 - **Payload**: provide an array of structure defined below:
-``` py
-        {
-            # Required. It also serves as deviceId in Lucid pattern
-            serverId: "string",
-            # Required. The OPC UA server url
-            url: "string",
-            # Optional. Used in Lucid pattern for provisioning child device
-            modelId: "string",
-            # Optional. Setting the OPC UA client publish events interval.
-            # Uses default publishInterval set in desired properties if not specified
-            publishInterval: "number",
-            # Optional. For applying filter on OPC UA nodes
-            filter: {
-                # Required
-                action: "include|exclude|reset"
-                # Optional. No need to specify nodes array if you're using reset action
-                nodes: "string[]"
-            },
-            # Optional. using default secrets if not provided. Meaning anonymous connection to OPC UA server
-            # and use default DPS enrollment group key for provisioning the child devices
-            # The value needs to be base64 encoded prior to paste in command's payload
-            secrets: {
-                # Optional. Server section is to define secrets to be used to connect to the OPC UA server
-                server: {
-                    # Required
-                    type: "usrpwd|sas|cert",
-                    # Required if type is usrpwd; Otherwise, optional
-                    usrpwd: {
-                        # Require
-                        user: "string",
-                        # Required
-                        pwd: "string"
-                    },
-                    # Required if type is sas; Otherwise, optional
-                    sas: {
-                        # Required
-                        key: "string"
-                    },
-                    # Required if type is cert; Otherwise, optional
-                    cert: {
-                        # Optional
-                        thumbprint: "string",
-                        # Required. Value should be the content of public PEM file
-                        public: "string",
-                        # Required. Value should be the content of private PEM file
-                        private: "string"
-                    }
-                },
-                # Optional. Client section is to be used for provisioning child device
-                client: {
-                    # Required
-                    type: "sas|cert|tpm",
-                    # Required if type is tpm; Otherwise, optional
-                    tpm: {
-                        # Required if storageRootKey not specified; Otherwise, optional
-                        endorsementKey: "string",
-                        # Required if endorsementKey not specified; Otherwise, optional
-                        storageRootKey: "string"
-                    },
-                    # Required if type is sas; Otherwise, optional
-                    sas: {
-                        # Required
-                        key: "string"
-                    },
-                    # Required if type is cert; Otherwise, optional
-                    cert: {
-                        # Optional
-                        thumbprint: "string",
-                        # Required. Value should be the content of public PEM file
-                        public: "string",
-                        # Required. Value should be the content of private PEM file
-                        private: "string"
-                    }
-                }
-            }
-        }
+``` ts
+{
+    serverId: string;                               // Unique value serves as dictiobary key and as deviceId in Lucid pattern
+    url: string;                                    // OPC UA server url
+    modelId?: string;                               // Used in Lucid pattern for provisioning child device
+    publishInterval?: number;                       // Publish events interval. default to desired property publishInterval
+    filter?: {                                      // Applying filter on OPC UA nodes
+        action: 'include' | 'exclude' | 'reset';
+        nodes?: string[];                           // No need to specify if you're using reset action
+    };
+    secrets?: {                                     // Value should be base64 encoded prior to use in command's payload
+        server?: {                                  // Defines secrets to be used to connect to the OPC UA server
+            type: 'pwd' | 'sas' | 'cert';
+            pwd?: {                                 // Required if type is pwd
+                user: string;
+                pwd: string;
+            };
+            sas?: {                                 // Required if type is sas
+                key: string;
+            };
+            cert?: {                                // Required if type is cert
+                thumbprint?: string;
+                public: string;                     // Content of public PEM file
+                private: string;                    // Content of private PEM file
+            };
+        };
+        client?: {                                  // Client section is to be used for provisioning child device
+            type: 'sas' | 'cert' | 'tpm';
+            tpm?: {                                 // Required if type is tpm
+                endorsementKey?: string;            // Required if storageRootKey not specified
+                storageRootKey?: string;            // Required if endorsementKey not specified
+            };
+            sas?: {                                 // Required if type is sas
+                key: string;
+            };
+            cert?: {                                // Required if type is cert
+                thumbprint?: string;
+                public: string;                     // Content of public PEM file
+                private: string;                    // Content of private PEM file
+            };
+        };
+    };
+}[];
 ```
 
 To do base64 encoding the secrets value you might want to execute some thing like following python script:
