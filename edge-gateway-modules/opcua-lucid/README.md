@@ -7,10 +7,11 @@
 
 ## Build and publish OPC UA lucid modules
 1. Copy the [provided solution](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/tree/main/edge-gateway-modules/opcua-lucid) to your development machine and open it in VSCode
-2. in [.env file](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-lucid/.env#L2-L4) replace all instance of:
+2. Install vscode extension [Azure IoT Tools](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.azure-iot-tools)
+3. in [.env file](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-lucid/.env#L2-L4) replace all instance of:
     - <YOUR_ACR_REGISTRY_NAME> with your ACR _"Registry name"_
     - <YOUR_ACR_REGISTRY_PASSWORD> with your ACR _"password"_
     - <YOUR_APP_ID_SCOPE> with _"ID Scope"_ taking from your app
     - <YOUR_APP_NON_EDGE_ENROLLMENT_GROUP_KEY> with non-edge enrollmentGroup _"Primary key"_ from your app
-3. Right click on [deployment.template.json](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-lucid/deployment.template.json) in your vscode solution and select _"Build and Push IoT Edge Solution"_. If successful, you should see the _"opcua_crud"_ and _"opcua_register"_ packages in your ACR Repositories
-4. Use the [config/deployment.amd64.json](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-lucid/config/deployment.amd64.json) file to create IoT Edge Gateway device template in your IoT Central application
+4. Right click on [deployment.template.json](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-lucid/deployment.template.json) in your vscode solution and select _"Build and Push IoT Edge Solution"_. If successful, you should see the _"opcua_crud"_ and _"opcua_register"_ packages in your ACR Repositories
+5. Use the [config/deployment.amd64.json](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/blob/main/edge-gateway-modules/opcua-lucid/config/deployment.amd64.json) file to create IoT Edge Gateway device template in your IoT Central application
