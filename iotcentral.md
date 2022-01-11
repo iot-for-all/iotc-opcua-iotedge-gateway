@@ -18,7 +18,6 @@
     [<img src=./assets/09_device_template_upload.png heigth="70%" width="70%">](/assets/09_device_template_upload.png)
 7. Click on **"Create"** button on **"Review"** page
 8. Add the following capabilities to **opcua_crud** module:
-    - Display name: **publishInterval**, Name: **publishInveral**, Capability type: **Property**, Schema: **Double**, Writable: **On**
     - Display name: **nodeid**, Name: **nodeid**, Capability type: **Telemetry**, Schema: **String**
     - Display name: **name**, Name: **name**, Capability type: **Telemetry**, Schema: **String**
     - Display name: **source_time_stamp**, Name: **source_time_stamp**, Capability type: **Telemetry**, Schema: **String**
