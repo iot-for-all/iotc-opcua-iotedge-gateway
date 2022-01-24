@@ -4,6 +4,7 @@
 - Install Python 3.7 or higher from [here](https://www.python.org/downloads/)
 - Need an [Azure Container Registry(ACR)](https://portal.azure.com/#create/Microsoft.ContainerRegistry). Our example uses ACR. Please create one if you don't have already and note the _"Login server"_, _"Registry name"_, _"User name"_, and _"password"_. You need them when you're building and publishing your module
 - Install Docker in your development machine from [docker.com](https://www.docker.com/products/docker-desktop)
+- In your development machine run the following command: _"docker login -u <YOUR_DOCKER_USER_NAME> -p <YOUR_DOCKER_PASSWORD>"_
 
 ## Build and publish OPC UA crud module
 1. Copy the [provided solution](https://github.com/iot-for-all/iotc-opcua-iotedge-gateway/tree/main/edge-gateway-modules/opcua-opaque) to your development machine and open it in VSCode
