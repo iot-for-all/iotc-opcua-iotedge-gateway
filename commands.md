@@ -17,7 +17,7 @@ Using _"model-less command"_ you can send the following commands to IoT Edge Gat
     - _"[{"serverId": "<SERVER_ID>", "url": "<YOUR_OPCUA_SERVER_URL>", "secrets": "<YOUR_B64_ENCODED_SECRETS>}]"_<br />
 - **disconnect**: Disconnect from OPC UA server(s) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;payload example: _"[{"serverId": "<SERVER_ID>"}]"_
-- **pubInterval**: Modify the OPC UA client publish events interval in miliseconds <br />
+- **pubInterval**: Modify the OPC UA client publish events interval in milliseconds <br />
 &nbsp;&nbsp;&nbsp;&nbsp;payload example: _"[{"serverId": "<SERVER_ID>", "publishInterval": <PUB_INTERVAL_MS>}]"_
 - **filter**: Apply filter on OPC UA nodes specifying the node(s) to _"include"_, _"exclude"_, or _"reset"_ the filter <br />
 &nbsp;&nbsp;&nbsp;&nbsp;payload examples:<br />
