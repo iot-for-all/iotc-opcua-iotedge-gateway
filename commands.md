@@ -11,10 +11,19 @@ First, verify that you can see **"model-less command"** feature in your IoT Cent
     [<img src=./assets/15_model_less_command.png heigth="70%" width="70%">](/assets/15_model_less_command.png)
 
 Using _"model-less command"_ you can send the following commands to IoT Edge Gateway module **"opcua_crud"** to handle OPC UA CRUD operations:
-- **connect**: Connect to OPC UA server(s) once the OPC UA server(s) accessible
-- **disconnect**: Disconnect from OPC UA server(s)
-- **pubInterval**: Modify the OPC UA client publish events interval
-- **filter**: Apply filter on OPC UA nodes specifying the node(s) to _"include"_, _"exclude"_, or _"reset"_ the filter
+- **connect**: Connect to OPC UA server(s) once the OPC UA server(s) accessible <br />
+&nbsp;&nbsp;&nbsp;&nbsp;payload examples:<br />
+    - _"[{"serverId": "<SERVER_ID>", "url": "<YOUR_OPCUA_SERVER_URL>"]"_<br />
+    - _"[{"serverId": "<SERVER_ID>", "url": "<YOUR_OPCUA_SERVER_URL>", "secrets": "<YOUR_B64_ENCODED_SECRETS>}]"_<br />
+- **disconnect**: Disconnect from OPC UA server(s) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;payload example: _"[{"serverId": "<SERVER_ID>"}]"_
+- **pubInterval**: Modify the OPC UA client publish events interval in miliseconds <br />
+&nbsp;&nbsp;&nbsp;&nbsp;payload example: _"[{"serverId": "<SERVER_ID>", "publishInterval": <PUB_INTERVAL_MS>}]"_
+- **filter**: Apply filter on OPC UA nodes specifying the node(s) to _"include"_, _"exclude"_, or _"reset"_ the filter <br />
+&nbsp;&nbsp;&nbsp;&nbsp;payload examples:<br />
+    - _"[{"serverId": "<SERVER_ID>", "filter": { "action": "include", "nodes": ["<NODE_ID>", "<NODE_ID>"]}}]"_<br />
+    - _"[{"serverId": "<SERVER_ID>", "filter": { "action": "exclude", "nodes": ["<NODE_ID>", "<NODE_ID>"]}}]"_<br />
+    - _"[{"serverId": "<SERVER_ID>", "filter": { "action": "reset"}}]"_<br />
 - **config**: Sends telemetry message containing OPC UA server(s) nodeid list
 
 Executing commands, you need to fill up the following areas:
